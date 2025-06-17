@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Daftar Tamu</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    input, button { padding: 8px; margin: 5px 0; width: 100%; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+    .no-data { color: red; margin-top: 10px; }
+    .hapus-btn { color: white; background-color: red; border: none; padding: 5px 10px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h2>Input Tamu</h2>
+  <input type="text" id="namaTamu" placeholder="Nama Tamu" />
+  <input type="text" id="nomorBangku" placeholder="Nomor Bangku" />
+  <button onclick="simpanTamu()">Simpan</button>
+
+  <h2>Cari Tamu</h2>
+  <input type="text" id="cariNama" placeholder="Cari Nama Tamu" oninput="cariTamu()" />
+
+  <div id="hasilCari"></div>
+
+  <script>
+    let tamuList = JSON.parse(localStorage.getItem("tamuList") || "[]");
+
+    function simpanTamu() {
+      const nama = document.getElementById("namaTamu").value.trim();
+      const bangku = document.getElementById("nomorBangku").value.trim();
+      if (!nama || !bangku) {
+        alert("Harap isi nama dan nomor bangku!");
+        return;
+      }
+      tamuList.push({ namaAsli: nama, nama: nama.toLowerCase(), bangku });
+      localStorage.setItem("tamuList", JSON.stringify(tamuList));
+      alert("Data disimpan!");
+      document.getElementById("namaTamu").value = "";
+      document.getElementById("nomorBangku").value = "";
+    }
+
+    function cariTamu() {
+      const namaCari = document.getElementById("cariNama").value.trim().toLowerCase();
+      const hasilDiv = document.getElementById("hasilCari");
+      hasilDiv.innerHTML = "";
+
+      if (namaCari === "") return;
+
+      const hasilFilter = tamuList
+        .map((t, i) => ({ ...t, index: i })) // tambahkan index
+        .filter(t => t.nama.includes(namaCari));
+
+      if (hasilFilter.length > 0) {
+        let table = `<table>
+          <tr><th>Nama Tamu</th><th>Nomor Bangku</th><th>Aksi</th></tr>`;
+        hasilFilter.forEach(t => {
+          table += `<tr>
+            <td>${t.namaAsli}</td>
+            <td>${t.bangku}</td>
+            <td><button class="hapus-btn" onclick="hapusTamu(${t.index})">Hapus</button></td>
+          </tr>`;
+        });
+        table += `</table>`;
+        hasilDiv.innerHTML = table;
+      } else {
+        hasilDiv.innerHTML = `<div class="no-data">Tamu tidak ditemukan.</div>`;
+      }
+    }
+
+    function hapusTamu(index) {
+      if (confirm("Yakin ingin menghapus tamu ini?")) {
+        tamuList.splice(index, 1); // hapus dari array
+        localStorage.setItem("tamuList", JSON.stringify(tamuList)); // simpan ulang
+        cariTamu(); // perbarui tampilan
+      }
+    }
+  </script>
+</body>
+</html>
